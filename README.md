@@ -9,6 +9,13 @@ GalleryCreator is an advanced .NET application tailored for managing and process
 - **Efficient Data Management:** Enables saving and loading of image metadata in JSON format, ensuring data portability and ease of access.
 - **Optimized for Angular:** Tailored to integrate seamlessly with Angular applications, enhancing front-end interactivity and user experience.
 
+![image](https://github.com/DaveC6662/GalleryCreator/assets/141587948/f3014b12-b867-4ad5-bfef-945d0ebbb5f8)
+![image](https://github.com/DaveC6662/GalleryCreator/assets/141587948/6d312374-a040-4ae1-9be6-7d63216c178d)
+![image](https://github.com/DaveC6662/GalleryCreator/assets/141587948/ea69fec0-c25b-4ae6-a04e-4c01d8e88126)
+![image](https://github.com/DaveC6662/GalleryCreator/assets/141587948/410a8a9b-1d75-4693-9a10-4b3a396e9a37)
+![image](https://github.com/DaveC6662/GalleryCreator/assets/141587948/10463bde-b74a-47f2-ac40-682b1025c917)
+![image](https://github.com/DaveC6662/GalleryCreator/assets/141587948/0feca4e9-794c-42c0-b301-ae9b2263f768)
+
 ## Requirements
 - .NET 7.0
 - Newtonsoft.Json for advanced JSON serialization and deserialization.
