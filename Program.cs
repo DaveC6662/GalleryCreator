@@ -60,7 +60,7 @@ namespace GalleryCreator
                 {
                     case "process":
                         Console.Clear();
-                        Console.Write("Please enter the path of the folder:");
+                        Console.Write("Please enter the path of the folder: ");
                         folderPath = Console.ReadLine() ?? "";
                         await ProcessFolderMetaData(folderPath);
                         break;

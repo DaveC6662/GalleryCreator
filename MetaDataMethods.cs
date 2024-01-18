@@ -186,6 +186,15 @@ namespace GalleryCreator
                     continue;
                 }
 
+                int quality = GetQualityInput();
+
+                Console.Write("Please enter the base directory path for saving images: ");
+                string baseDir = Console.ReadLine() ?? "";
+
+                Console.Write("Would you like to add assets to the path? (yes/no): ");
+                string addAssetsResponse = Console.ReadLine()?.ToLower();
+                bool addAssets = addAssetsResponse == "yes";
+
                 string[] files = Directory.GetFiles(folderPath);
                 int fileCount = files.Length;
                 Console.WriteLine($"\nReading {fileCount} files in {folderPath}:");
@@ -208,7 +217,7 @@ namespace GalleryCreator
                     }
                     Console.Write($"\r{new string(' ', Console.WindowWidth)}\r");
                     Console.Write($"\rProcessing file {i + 1} of {fileCount}: {fileName}");
-                    await ProcessFile(file);
+                    await ProcessFile(file, addAssets, baseDir, quality);
                 }
 
                 DisplayNoDataFiles();
@@ -224,11 +233,22 @@ namespace GalleryCreator
         /// Utilizes asynchronous operations for loading and processing.
         /// </summary>
         /// <param name="file">The path to the image file.</param>
-        private static async Task ProcessFile(string file)
+        private static async Task ProcessFile(string file, bool addAssets, string baseDir, int quality)
         {
-            using var image = await Image.LoadAsync(file);
-            ReadMetadata(image, Path.GetFileName(file));
-            await ResizeImageAsync(image, Path.GetFileName(file));
+            try
+            {
+                var image = await Image.LoadAsync(file);
+                ReadMetadata(image, Path.GetFileName(file));
+                await ResizeImageAsync(image, Path.GetFileName(file), addAssets, baseDir, quality);
+            }
+            catch (ImageFormatException)
+            {
+                Console.WriteLine($"\nSkipping non-image file: {Path.GetFileName(file)}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"\nAn unexpected error occurred while processing {Path.GetFileName(file)}: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -286,6 +306,36 @@ namespace GalleryCreator
             Console.WriteLine("Added tags to images. Press Enter to continue...");
             Console.ReadLine();
             Console.Clear();
+        }
+
+        /// <summary>
+        /// Prompts the user to enter a photo quality value and validates the input.
+        /// </summary>
+        /// <returns>
+        /// An integer representing the photo quality. 
+        /// The method ensures that this value is within the range of 25 to 100.
+        /// </returns>
+        public static int GetQualityInput()
+        {
+            while (true)
+            {
+                Console.Write("Please enter desired photo quality (25-100): ");
+                if (int.TryParse(Console.ReadLine(), out int quality))
+                {
+                    if (quality >= 25 && quality <= 100)
+                    {
+                        return quality;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Quality must be between 25 and 100. Please try again.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Invalid input. Please enter a number between 25 and 100.");
+                }
+            }
         }
 
     }
