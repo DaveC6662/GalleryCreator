@@ -7,7 +7,7 @@ GalleryCreator stands out as a comprehensive .NET solution, specifically designe
 
 ## Features
 - **Metadata Processing:**  GalleryCreator adeptly extracts EXIF data from each photograph within a directory, providing valuable insights into camera settings used to take each photo.
-- **Image Resizing:** The application is equipped to resize images for optimal display across diverse devices. It automatically exports images of each size to suit desktop, tablet, and mobile resolutions, ensuring a seamless viewing experience.
+- **Image Resizing:** The application is designed with advanced image resizing capabilities, ensuring optimal display on a variety of devices. It adeptly exports images in multiple sizes tailored specifically for desktops, tablets, and mobile devices, guaranteeing a seamless and responsive viewing experience. Additionally, when exporting images in each resolution, the application meticulously strips out metadata, enhancing privacy and security for images hosted online.
 - **Tagging System:** By incorporating tagging for each image within the JSON file, GalleryCreator allows for the implementation of advanced filtering options. This feature enriches the user experience, enabling easy navigation and exploration of the photo gallery based on specific criteria or themes.
 - **Efficient Data Management:** Enables saving and loading of image metadata and each resolution source path in JSON format, ensuring data portability and ease of access.
 - **Optimized for Angular:** Tailored to integrate seamlessly with Angular applications, enhancing front-end interactivity and user experience.
