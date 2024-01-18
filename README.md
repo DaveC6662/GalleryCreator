@@ -36,11 +36,11 @@ GalleryCreator stands out as a comprehensive .NET solution, specifically designe
 
 ![Exported JSON](https://github.com/DaveC6662/GalleryCreator/assets/141587948/0feca4e9-794c-42c0-b301-ae9b2263f768)
 
-##Using JSON to filter by image tags
+## Using JSON to filter by image tags
 
 ![Image Filter](https://github.com/DaveC6662/GalleryCreator/assets/141587948/9ad1fd08-675c-4cb0-a7ab-be84fb5cf3ae)
 
-##Using JSON to display the image EXIF data
+## Using JSON to display the image EXIF data
 
 ![EXIF Data](https://github.com/DaveC6662/GalleryCreator/assets/141587948/e73c602a-10a7-49ab-873a-8ce5a9915707)
 
