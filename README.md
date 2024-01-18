@@ -1,12 +1,15 @@
 # GalleryCreator
 
 ## Overview
-GalleryCreator is an advanced .NET application tailored for managing and processing dynamic photo galleries, particularly optimized for Angular-based projects. It encompasses a suite of features for image metadata extraction, resizing, display enhancements, and efficient organization.
+GalleryCreator: A Sophisticated .NET Application for Dynamic Photo Gallery Management
+
+GalleryCreator stands out as a comprehensive .NET solution, specifically designed to streamline the management and processing of dynamic photo galleries. This application is particularly fine-tuned for integration with Angular-based projects, offering a rich array of features for meticulous image handling. This is an ideal tool for photographers, web developers, and digital artists seeking an efficient and automated way to build a showcase for their photographic work online. By handling the technical aspects of gallery creation, it allows creatives to focus on the artistic side of their projects.
 
 ## Features
-- **Metadata Processing & Resizing:** Automates the extraction of metadata from images and resizes them to predefined sizes, catering to diverse display requirements.
-- **Enhanced Tagging System:** Offers a robust tagging mechanism for superior organization and easy filtering of images.
-- **Efficient Data Management:** Enables saving and loading of image metadata in JSON format, ensuring data portability and ease of access.
+- **Metadata Processing:**  GalleryCreator adeptly extracts EXIF data from each photograph within a directory, providing valuable insights into camera settings used to take each photo.
+- **Image Resizing:** The application is equipped to resize images for optimal display across diverse devices. It automatically exports images of each size to suit desktop, tablet, and mobile resolutions, ensuring a seamless viewing experience.
+- **Tagging System:** By incorporating tagging for each image within the JSON file, GalleryCreator allows for the implementation of advanced filtering options. This feature enriches the user experience, enabling easy navigation and exploration of the photo gallery based on specific criteria or themes.
+- **Efficient Data Management:** Enables saving and loading of image metadata and each resolution source path in JSON format, ensuring data portability and ease of access.
 - **Optimized for Angular:** Tailored to integrate seamlessly with Angular applications, enhancing front-end interactivity and user experience.
 
 ## Menu
@@ -32,6 +35,14 @@ GalleryCreator is an advanced .NET application tailored for managing and process
 ## Exported JSON
 
 ![Exported JSON](https://github.com/DaveC6662/GalleryCreator/assets/141587948/0feca4e9-794c-42c0-b301-ae9b2263f768)
+
+##Using JSON to filter by image tags
+
+![Image Filter](https://github.com/DaveC6662/GalleryCreator/assets/141587948/9ad1fd08-675c-4cb0-a7ab-be84fb5cf3ae)
+
+##Using JSON to display the image EXIF data
+
+![EXIF Data](https://github.com/DaveC6662/GalleryCreator/assets/141587948/e73c602a-10a7-49ab-873a-8ce5a9915707)
 
 
 ## Requirements
