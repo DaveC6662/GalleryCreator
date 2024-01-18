@@ -56,8 +56,11 @@ namespace GalleryCreator
                 string outPath = addAssets ? Path.Combine(baseDir, "assets", "img", resolution.Key, fileName)
                                        : Path.Combine(baseDir, "img", resolution.Key, fileName);
 
+                string resolutionPath = addAssets ? Path.Combine("assets", "img", resolution.Key, fileName)
+                                       : Path.Combine("img", resolution.Key, fileName);
+
                 EnsureDirectoryExists(outPath);
-                var res = new Resolution { Path = outPath, Width = resolution.Value.Width, Height = resolution.Value.Height };
+                var res = new Resolution { Path = resolutionPath, Width = resolution.Value.Width, Height = resolution.Value.Height };
                 UpdateImageDatas(fileName, resolution.Key, res);
 
                 await ResizeAndSaveAsync(image, resolution.Value, outPath, quality);
