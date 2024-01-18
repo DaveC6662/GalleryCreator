@@ -65,7 +65,7 @@ Launch the application via .NET CLI or IDE. A user-friendly, console-based menu 
 Your contributions can help make GalleryCreator even better! Fork the repository and submit a pull request with your suggested changes or enhancements.
 
 ## License
-GalleryCreator is open-source software, licensed under the Apache 2.0 License. For more details, see the LICENSE.md file.
+GalleryCreator is open-source software, licensed under the Apache 2.0 License. For more details, see the LICENSE file.
 
 ## Author
 - Davin Chiupka
