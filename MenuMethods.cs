@@ -48,6 +48,7 @@ namespace GalleryCreator
             Console.WriteLine($"*\t {"process - Extracts metadata and resizes images in a directory.",-70}*");
             Console.WriteLine($"*\t {"display - Display photos and their respective values.",-70}*");
             Console.WriteLine($"*\t {"tag     - Tag the loaded photos.",-70}*");
+            Console.WriteLine($"*\t {"alt     - Add alt text to images",-70}*");
             Console.WriteLine($"*\t {"save    - Save the image data to JSON.",-70}*");
             Console.WriteLine($"*\t {"load    - Load in a JSON file.",-70}*");
             Console.WriteLine($"*\t {"exit    - Exit the application.",-70}*");
@@ -103,23 +104,18 @@ namespace GalleryCreator
                 Directory.CreateDirectory(directory);
             }
 
-            ConvertLinkedListToJsonAndSave(ImageDatas, filePath);
-            Console.WriteLine($"Data saved to {filePath}, press enter to continue");
+            string json = JsonConvert.SerializeObject(ImageDatas, Formatting.Indented);
+            try
+            {
+                File.WriteAllText(filePath, json);
+                Console.WriteLine($"Data saved to {filePath}, press enter to continue");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message} Press enter return to menu");
+            }
             Console.ReadLine();
             Console.Clear();
-        }
-
-        /// <summary>
-        /// Converts a LinkedList of ImageData objects to a JSON string and saves it to the specified file path.
-        /// The method uses Newtonsoft.Json for serialization with indented formatting.
-        /// The resulting JSON string is written to a file at the specified filePath.
-        /// </summary>
-        /// <param name="data">The LinkedList of ImageData objects to be serialized.</param>
-        /// <param name="filePath">The file path where the JSON data will be saved.</param>
-        public static void ConvertLinkedListToJsonAndSave(LinkedList<ImageData> data, string filePath)
-        {
-            string json = JsonConvert.SerializeObject(data, Formatting.Indented);
-            File.WriteAllText(filePath, json);
         }
 
         /// <summary>
@@ -177,6 +173,9 @@ namespace GalleryCreator
                                  let data = new ImageData
                                  {
                                      FileName = img.FileName,
+                                     AltName = img.AltName,
+                                     Type = img.Type,
+                                     Alt = img.Alt,
                                      Resolutions = new Resolutions
                                      {
                                          PreviewS = new Resolution

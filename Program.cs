@@ -72,6 +72,10 @@ namespace GalleryCreator
                         Console.Clear();
                         AddTagsToImages();
                         break;
+                    case "alt":
+                        Console.Clear();
+                        AddAltTextToImages();
+                        break;
                     case "save":
                         Console.Clear();
                         SaveData();

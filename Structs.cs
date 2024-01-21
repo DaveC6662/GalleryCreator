@@ -28,6 +28,8 @@ namespace GalleryCreator
         private static readonly LinkedList<ImageData> _imageDatas = new();
         private static readonly LinkedList<string> _noData = new();
 
+        public static string fileType = ".jpg";
+
         public static LinkedList<ImageData> ImageDatas
         {
             get { return _imageDatas; }
@@ -57,6 +59,9 @@ namespace GalleryCreator
         public class ImageData
         {
             public string? FileName { get; set; }
+            public string? AltName { get; set; }
+            public string? Type { get; set; }
+            public string? Alt { get; set; }
 
             public Resolutions Resolutions = new();
 
@@ -71,7 +76,17 @@ namespace GalleryCreator
             {
                 string border = new('*', 80);
 
-                Console.WriteLine($"{"File name:",-25} {FileName}");
+                if (!string.IsNullOrEmpty(AltName))
+                {
+                    Console.WriteLine($"{"Origianl file name:",-25} {FileName}");
+                    Console.WriteLine($"{"New file name:",-25} {AltName}");
+                }
+                else
+                {
+                    Console.WriteLine($"{"File name:",-25} {FileName}");
+                }
+                Console.WriteLine($"{"Type:",-25} {Type}");
+                Console.WriteLine($"{"Alt Text:",-25} {Alt}");
                 Console.WriteLine($"{"Camera model:",-25} {CameraSettings?.CameraModel}");
                 Console.WriteLine($"{"Lens model:",-25} {CameraSettings?.LensModel}");
                 Console.WriteLine($"{"Shutter Speed:",-25} {CameraSettings?.ShutterSpeed}");

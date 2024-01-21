@@ -24,7 +24,13 @@
 */
 
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.Formats.Bmp;
+using SixLabors.ImageSharp.Formats.Gif;
 using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.Formats.Tiff;
+using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.Processing;
 using static GalleryCreator.Structs;
 
@@ -43,7 +49,7 @@ namespace GalleryCreator
         /// </summary>
         /// <param name="image">The image to be resized.</param>
         /// <param name="fileName">The file name of the image.</param>
-        public static async Task ResizeImageAsync(Image image, string fileName, bool addAssets, string baseDir, int quality)
+        public static async Task ResizeImageAsync(Image image, string fileName, bool addAssets, string baseDir, int quality, string outputFileType)
         {
             var resolutions = new Dictionary<string, Size>
         {
@@ -51,19 +57,21 @@ namespace GalleryCreator
             { "Md", SizeMd },
             { "Sm", SizeSm }
         };
+            string baseFileName = Path.GetFileNameWithoutExtension(fileName);
+
             foreach (var resolution in resolutions)
             {
-                string outPath = addAssets ? Path.Combine(baseDir, "assets", "img", resolution.Key, fileName)
-                                       : Path.Combine(baseDir, "img", resolution.Key, fileName);
+                string OutputFileName = $"{baseFileName}.{outputFileType}";
+                string outPath = Path.Combine(baseDir, "img", resolution.Key, OutputFileName);
 
-                string resolutionPath = addAssets ? Path.Combine("assets", "img", resolution.Key, fileName)
-                                       : Path.Combine("img", resolution.Key, fileName);
+                string resolutionPath = addAssets ? Path.Combine("assets", "img", resolution.Key, OutputFileName)
+                                       : Path.Combine("img", resolution.Key, OutputFileName);
 
                 EnsureDirectoryExists(outPath);
                 var res = new Resolution { Path = resolutionPath, Width = resolution.Value.Width, Height = resolution.Value.Height };
                 UpdateImageDatas(fileName, resolution.Key, res);
 
-                await ResizeAndSaveAsync(image, resolution.Value, outPath, quality);
+                await ResizeAndSaveAsync(image, resolution.Value, outPath, quality, outputFileType);
             }
         }
 
@@ -77,7 +85,7 @@ namespace GalleryCreator
             string? directory = Path.GetDirectoryName(path);
             if (directory != null && !Directory.Exists(directory))
             {
-               Directory.CreateDirectory(directory);
+                Directory.CreateDirectory(directory);
             }
         }
 
@@ -122,7 +130,7 @@ namespace GalleryCreator
         /// <param name="image">The image to be resized.</param>
         /// <param name="size">The target size for the resized image.</param>
         /// <param name="outputPath">The path where the resized image will be saved.</param>
-        private static async Task ResizeAndSaveAsync(Image image, Size size, string outputPath, int quality)
+        private static async Task ResizeAndSaveAsync(Image image, Size size, string outputPath, int quality, string fileType)
         {
             var resizeOptions = new ResizeOptions
             {
@@ -136,7 +144,17 @@ namespace GalleryCreator
             resizedImage.Metadata.IccProfile = null;
             resizedImage.Metadata.IptcProfile = null;
             resizedImage.Metadata.CicpProfile = null;
-            var encoder = new JpegEncoder { Quality = quality };
+
+            IImageEncoder encoder = fileType switch
+            {
+                ".png" => new PngEncoder(),
+                ".gif" => new GifEncoder(),
+                ".bmp" => new BmpEncoder(),
+                ".tiff" => new TiffEncoder(),
+                ".webp" => new WebpEncoder { Quality = quality },
+                _ => new JpegEncoder { Quality = quality },
+            };
+
             await resizedImage.SaveAsync(outputPath, encoder);
         }
     }

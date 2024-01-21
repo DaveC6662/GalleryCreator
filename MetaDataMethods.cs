@@ -33,6 +33,7 @@ namespace GalleryCreator
 {
     public class MetaDataMethods
     {
+
         /// <summary>
         /// Reads the metadata from an image and stores it in an ImageData object.
         /// This method specifically extracts camera settings and other relevant EXIF data.
@@ -40,16 +41,50 @@ namespace GalleryCreator
         /// </summary>
         /// <param name="image">The Image object to extract metadata from.</param>
         /// <param name="fileName">The name of the file associated with the image.</param>
-
         public static void ReadMetadata(Image image, string fileName)
         {
-            if (image.Metadata.ExifProfile?.Values == null || !image.Metadata.ExifProfile.Values.Any())
+            if (!ContainsMetadata(image))
             {
-                Console.WriteLine($"{fileName} does not contain metadata{Environment.NewLine}");
+                HandleNoMetadata(fileName);
                 return;
             }
 
-            var photo = new ImageData { FileName = fileName };
+            _ = ExtractMetadata(image, fileName);
+        }
+
+
+        /// <summary>
+        /// Checks if the given image contains metadata.
+        /// </summary>
+        /// <param name="image">The image to check for metadata.</param>
+        /// <returns>True if metadata exists; otherwise, false.</returns>
+        private static bool ContainsMetadata(Image image)
+        {
+            return image.Metadata.ExifProfile?.Values != null && image.Metadata.ExifProfile.Values.Any();
+        }
+
+
+        /// <summary>
+        /// Handles the scenario where an image does not contain metadata.
+        /// Logs a message and adds the file name to the 'NoData' collection.
+        /// </summary>
+        /// <param name="fileName">The name of the file that lacks metadata.</param>
+        private static void HandleNoMetadata(string fileName)
+        {
+            Console.WriteLine($"{fileName} does not contain metadata{Environment.NewLine}");
+            NoData?.AddLast(fileName);
+        }
+
+
+        /// <summary>
+        /// Extracts metadata from the given image and stores it in an ImageData object.
+        /// </summary>
+        /// <param name="image">The image to extract metadata from.</param>
+        /// <param name="fileName">The name of the file associated with the image.</param>
+        /// <returns>An ImageData object containing the extracted metadata.</returns>
+        private static ImageData ExtractMetadata(Image image, string fileName)
+        {
+            ImageData photo = ImageDatas.FirstOrDefault(img => img.FileName == fileName) ?? new ImageData { FileName = fileName };
 
             var requiredTags = new HashSet<string> { "Model", "LensModel", "ExposureTime", "FNumber", "RecommendedExposureIndex" };
 
@@ -64,7 +99,7 @@ namespace GalleryCreator
 
             foreach (var prop in image.Metadata.ExifProfile.Values)
             {
-                string tag = prop.Tag.ToString();
+                var tag = prop.Tag.ToString();
                 if (tagActions.TryGetValue(tag, out var action))
                 {
                     action(prop);
@@ -75,15 +110,9 @@ namespace GalleryCreator
                 }
             }
 
-            if (photo.HasData())
-            {
-                _ = ImageDatas?.AddLast(photo);
-            }
-            else
-            {
-                _ = NoData?.AddLast(fileName);
-            }
+            return photo;
         }
+
 
         /// <summary>
         /// Parses a string representing a fraction and returns its decimal form.
@@ -91,7 +120,6 @@ namespace GalleryCreator
         /// </summary>
         /// <param name="propVal">The string to parse, expected to be in a fractional format like 'numerator/denominator'.</param>
         /// <returns>The decimal representation of the fraction, or 0 in case of errors.</returns>
-
         public static float StringDivision(IExifValue propVal)
         {
             if (propVal == null)
@@ -176,55 +204,143 @@ namespace GalleryCreator
         /// <param name="folderPath">The path to the folder containing image files.</param>
         public static async Task ProcessFolderMetaData(string folderPath)
         {
-            while (!string.IsNullOrEmpty(folderPath))
+            if (string.IsNullOrEmpty(folderPath) || !Directory.Exists(folderPath))
             {
-                if (!Directory.Exists(folderPath))
+                Console.WriteLine("Invalid or empty folder path.");
+                return;
+            }
+
+            int quality = GetQualityInput();
+            string baseDir = GetBaseDirectoryPath();
+            bool addAssets = GetAddAssetsInput();
+            fileType = GetFileType();
+            bool renameResponse = GetRenameInput();
+
+            string[] files = Directory.GetFiles(folderPath);
+            var imageFiles = files.Where(file => IsImageFile(file)).ToList();
+
+            Console.WriteLine($"\nSkipping {files.Length - imageFiles.Count} non-image files");
+
+            Console.WriteLine($"\nReading {imageFiles.Count} photos in {folderPath}:");
+
+            foreach (var file in imageFiles)
+            {
+                string fileName = Path.GetFileName(file);
+
+                if (ImageDatas.Any(data => data.FileName == fileName) || NoData.Any(data => data == fileName))
                 {
-                    Console.WriteLine("The specified folder does not exist, please enter a valid path or enter to exit to menu:");
-                    Console.Write(">");
-                    folderPath = Console.ReadLine() ?? "";
-                    continue;
+                    Console.WriteLine($"Skipping file {fileName}, already read.");
                 }
-
-                int quality = GetQualityInput();
-
-                Console.Write("Please enter the base directory path for saving images: ");
-                string baseDir = Console.ReadLine() ?? "";
-
-                Console.Write("Would you like to add assets to the path? (yes/no): ");
-                string addAssetsResponse = Console.ReadLine()?.ToLower();
-                bool addAssets = addAssetsResponse == "yes";
-
-                string[] files = Directory.GetFiles(folderPath);
-                int fileCount = files.Length;
-                Console.WriteLine($"\nReading {fileCount} files in {folderPath}:");
-
-                for (int i = 0; i < files.Length; i++)
+                else
                 {
-                    string file = files[i];
-                    string fileName = Path.GetFileName(file);
-
-                    if (ImageDatas.Any(data => data.FileName == fileName))
+                    string? altName = renameResponse ? GetNewFileName(Path.GetFileName(file)) : null;
+                    ImageDatas.AddLast(new ImageData
                     {
-                        Console.WriteLine($"Skipping file {fileName}, already read.");
-                        continue;
-                    }
-
-                    if (NoData.Any(data => data == fileName))
-                    {
-                        Console.WriteLine($"Skipping file {fileName}, no EXIF data.");
-                        continue;
-                    }
-                    Console.Write($"\r{new string(' ', Console.WindowWidth)}\r");
-                    Console.Write($"\rProcessing file {i + 1} of {fileCount}: {fileName}");
-                    await ProcessFile(file, addAssets, baseDir, quality);
+                        FileName = Path.GetFileName(file),
+                        AltName = altName,
+                        Type = fileType,
+                    });
                 }
+            }
 
-                DisplayNoDataFiles();
-                Console.WriteLine("\nFile processing completed, press enter to continue...");
-                Console.ReadLine();
-                Console.Clear();
-                break;
+            foreach (var file in imageFiles)
+            {
+                await ProcessFile(file, addAssets, baseDir, quality, fileType);
+            }
+
+            DisplayNoDataFiles();
+            Console.WriteLine("\nFile processing completed. Press enter to continue...");
+            Console.ReadLine();
+            Console.Clear();
+        }
+
+        /// <summary>
+        /// Determines whether a file is an image based on its extension.
+        /// </summary>
+        /// <param name="filePath">The path of the file to check.</param>
+        /// <returns>True if the file is an image; otherwise, false.</returns>
+        private static bool IsImageFile(string filePath)
+        {
+            string[] imageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff" };
+            string fileExtension = Path.GetExtension(filePath).ToLower();
+            return imageExtensions.Contains(fileExtension);
+        }
+
+        /// <summary>
+        /// Prompts the user to enter the base directory path for saving images.
+        /// </summary>
+        /// <returns>The base directory path entered by the user or the default path "./".</returns>
+        private static string GetBaseDirectoryPath()
+        {
+            Console.Clear();
+            Console.Write("Please enter the base directory path for saving images (default is \"./\"): ");
+            return Console.ReadLine() ?? "";
+        }
+
+        /// <summary>
+        /// Asks the user if they want to add "assets" to the path name.
+        /// </summary>
+        /// <returns>True if the user wants to add "assets"; otherwise, false.</returns>
+        private static bool GetAddAssetsInput()
+        {
+            Console.Clear();
+            Console.Write("Would you like to add \"assets\" to the path name? (yes/no): ");
+            string response = Console.ReadLine()?.ToLower() ?? "";
+            return response == "yes";
+        }
+
+        /// <summary>
+        /// Asks the user if they would like to rename the images.
+        /// </summary>
+        /// <returns>True if the user chooses to rename images; otherwise, false.</returns>
+        private static bool GetRenameInput()
+        {
+            Console.Clear();
+            Console.Write("Would you like to rename these images? (yes/no): ");
+            string response = Console.ReadLine()?.ToLower() ?? "";
+            return response == "yes";
+        }
+
+        /// <summary>
+        /// Prompts the user to enter a new file name for an image.
+        /// </summary>
+        /// <param name="originalFileName">The original file name of the image.</param>
+        /// <returns>The new file name entered by the user, or the original file name if no new name is provided.</returns>
+        private static string GetNewFileName(string originalFileName)
+        {
+            Console.Write($"Enter new file name for '{originalFileName}' (press Enter to keep original): ");
+            string newName = Console.ReadLine() ?? "";
+            return string.IsNullOrEmpty(newName) ? originalFileName : newName;
+        }
+
+        /// <summary>
+        /// Prompts the user to select a file type for resized photos.
+        /// </summary>
+        /// <returns>The file type chosen by the user or the default type "jpg".</returns>
+        private static string GetFileType()
+        {
+            Console.Clear();
+            while (true)
+            {
+                Console.WriteLine("Select file type (default JPEG) for resized photos:");
+                Console.WriteLine("1. PNG");
+                Console.WriteLine("2. GIF");
+                Console.WriteLine("3. BMP");
+                Console.WriteLine("4. TIFF");
+                Console.WriteLine("5. WEBP");
+                Console.Write("Enter your choice (1-5) or press enter to leave as default: ");
+
+                string? choice = Console.ReadLine();
+
+                return choice switch
+                {
+                    "1" => "png",
+                    "2" => "gif",
+                    "3" => "bmp",
+                    "4" => "tiff",
+                    "5" => "webp",
+                    _ => "jpg",
+                };
             }
         }
 
@@ -233,21 +349,24 @@ namespace GalleryCreator
         /// Utilizes asynchronous operations for loading and processing.
         /// </summary>
         /// <param name="file">The path to the image file.</param>
-        private static async Task ProcessFile(string file, bool addAssets, string baseDir, int quality)
+        private static async Task ProcessFile(string file, bool addAssets, string baseDir, int quality, string fileType)
         {
+            string fileName = ImageDatas.FirstOrDefault(img => img.FileName == Path.GetFileName(file) && img.AltName != "")?.AltName ?? Path.GetFileName(file);
             try
             {
                 var image = await Image.LoadAsync(file);
+                Console.Write($"\r{new string(' ', Console.WindowWidth)}\r");
+                Console.Write($"\rProcessing file: {fileName}");
                 ReadMetadata(image, Path.GetFileName(file));
-                await ResizeImageAsync(image, Path.GetFileName(file), addAssets, baseDir, quality);
+                await ResizeImageAsync(image, fileName, addAssets, baseDir, quality, fileType);
             }
             catch (ImageFormatException)
             {
-                Console.WriteLine($"\nSkipping non-image file: {Path.GetFileName(file)}");
+                Console.WriteLine($"\nSkipping non-image file: {fileName}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nAn unexpected error occurred while processing {Path.GetFileName(file)}: {ex.Message}");
+                Console.WriteLine($"\nAn unexpected error occurred while processing {fileName}: {ex.Message}");
             }
         }
 
@@ -273,7 +392,6 @@ namespace GalleryCreator
         /// Prompts the user to enter tags for each image and adds them to the ImageData object.
         /// Skips tagging if no images are loaded.
         /// </summary>
-
         public static void AddTagsToImages()
         {
             if (ImageDatas == null || ImageDatas.Count == 0)
@@ -286,7 +404,7 @@ namespace GalleryCreator
 
             foreach (var imageData in ImageDatas)
             {
-                Console.WriteLine($"Add tags for file: {imageData.FileName}");
+                Console.WriteLine($"Add tags for image: {imageData.FileName}");
                 Console.WriteLine("Enter tags (press Enter on an empty line to finish):");
 
                 while (true)
@@ -309,6 +427,42 @@ namespace GalleryCreator
         }
 
         /// <summary>
+        /// Allows the user to add alternative text to each image in the ImageDatas collection.
+        /// The method prompts the user to enter alt text for each image and updates the ImageData object.
+        /// If there are no images available, it displays a message and returns to the menu.
+        /// </summary>
+        public static void AddAltTextToImages()
+        {
+            if (ImageDatas == null || ImageDatas.Count == 0)
+            {
+                Console.WriteLine("No images available to add alt text, press enter to return to menu.");
+                Console.ReadLine();
+                Console.Clear();
+                return;
+            }
+
+            foreach (var imageData in ImageDatas)
+            {
+                Console.WriteLine($"Add alt text for image: {imageData.FileName}");
+                imageData.Alt = GetAltText();
+            }
+
+            Console.WriteLine("Added tags to images. Press Enter to continue...");
+            Console.ReadLine();
+            Console.Clear();
+        }
+
+        /// <summary>
+        /// Prompts the user to enter alternative text for an image.
+        /// </summary>
+        /// <returns>The alternative text entered by the user or an empty string if no text is entered.</returns>
+        private static string GetAltText()
+        {
+            Console.Write("Enter Alt Text for the image (press Enter to leave blank): ");
+            return Console.ReadLine() ?? "";
+        }
+
+        /// <summary>
         /// Prompts the user to enter a photo quality value and validates the input.
         /// </summary>
         /// <returns>
@@ -319,6 +473,7 @@ namespace GalleryCreator
         {
             while (true)
             {
+                Console.Clear();
                 Console.Write("Please enter desired photo quality (25-100): ");
                 if (int.TryParse(Console.ReadLine(), out int quality))
                 {
